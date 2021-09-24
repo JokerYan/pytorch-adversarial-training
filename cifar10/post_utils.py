@@ -95,15 +95,14 @@ def post_train(model, images, train_loaders_by_class, args):
     epsilon = (8 / 255) / std
     loss_func = nn.CrossEntropyLoss()
     device = torch.device('cuda')
-    print(model(images))
     model = copy.deepcopy(model)
-    print(model(images))
     fix_model = copy.deepcopy(model)
     optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=0.9,
                                 nesterov=True)
     images = images.detach()
+    print(torch.argmax(model(images)))
     with torch.enable_grad():
         original_output = fix_model(images)
         original_class = torch.argmax(original_output).reshape(1)
