@@ -68,7 +68,6 @@ def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None, ra
         delta.requires_grad = True
         for _ in range(attack_iters):
             output = model(X + delta)
-            print(y, torch.argmax(output))
             index = torch.where(output.max(1)[1] == y)
             if len(index[0]) == 0:
                 break

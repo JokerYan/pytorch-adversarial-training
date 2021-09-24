@@ -147,6 +147,7 @@ class Trainer():
         with torch.no_grad():
             for data, label in loader:
                 data, label = tensor2cuda(data), tensor2cuda(label)
+                print(label)
 
                 output = model(data, _eval=True)
 
