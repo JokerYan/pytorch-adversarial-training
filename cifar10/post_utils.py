@@ -107,7 +107,7 @@ def post_train(model, images, model_attack, train_loaders_by_class, args):
 
         # neighbour_delta = attack_pgd(model, images, original_class, epsilon, alpha, attack_iters=20,
         #                              restarts=1, random_start=False).detach()
-        neighbour_delta = model_attack.perturb(images, original_class, 'mean', False)
+        neighbour_delta = model_attack.perturb(images, original_class, 'mean', False) - images
         neighbour_images = neighbour_delta + images
         neighbour_output = model(neighbour_images, _eval=True)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
