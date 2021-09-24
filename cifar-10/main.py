@@ -167,7 +167,6 @@ class Trainer():
                     adv_pred = torch.max(adv_output, dim=1)[1]
                     print(adv_pred)
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
-                    total_adv_acc += adv_acc
 
                     # post attack
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = post_train(model, adv_data, train_loaders_by_class, args)

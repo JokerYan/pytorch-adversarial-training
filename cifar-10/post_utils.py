@@ -105,6 +105,7 @@ def post_train(model, images, train_loaders_by_class, args):
     with torch.enable_grad():
         original_output = fix_model(images)
         original_class = torch.argmax(original_output).reshape(1)
+        print(original_class)
 
         neighbour_delta = attack_pgd(model, images, original_class, epsilon, alpha, attack_iters=20,
                                      restarts=1, random_start=False).detach()
