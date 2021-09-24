@@ -11,3 +11,9 @@ log/
 *.so
 sftp-config.json
 read_log.py
+
+# model
+*.pth
+
+# pycharm
+.idea
