@@ -169,7 +169,7 @@ class Trainer():
                     total_adv_acc += adv_acc
 
                     # post attack
-                    print(torch.argmax(model(adv_data)))
+                    print(torch.argmax(adv_output), torch.argmax(model(adv_data)))
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
                         post_train(model, adv_data, train_loaders_by_class, args)
                     post_output = post_model(adv_data, _eval=True)
