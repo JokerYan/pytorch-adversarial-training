@@ -1,1 +1,1 @@
-python main.py --todo test --data_root ../data/cifar-10-batches-py -e 0.314 -p 'l2' --load_checkpoint 7step_2alpha_0.1lr.pth
+python main.py --todo test --data_root ../../data/ -e 0.314 -p 'l2' --load_checkpoint 7step_2alpha_0.1lr.pth
