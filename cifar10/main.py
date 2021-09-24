@@ -141,7 +141,7 @@ class Trainer():
         num = 0
         total_adv_acc = 0.0
         total_post_acc = 0.0
-        total_neighbour_acc = 0.1
+        total_neighbour_acc = 0.0
 
         train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
