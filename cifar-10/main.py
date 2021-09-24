@@ -14,6 +14,7 @@ from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate
 from src.argument import parser, print_args
 from post_utils import get_train_loaders_by_class, post_train
 
+
 class Trainer():
     def __init__(self, args, logger, attack):
         self.args = args
@@ -30,23 +31,23 @@ class Trainer():
         args = self.args
         logger = self.logger
 
-        opt = torch.optim.SGD(model.parameters(), args.learning_rate, 
+        opt = torch.optim.SGD(model.parameters(), args.learning_rate,
                               weight_decay=args.weight_decay,
                               momentum=args.momentum)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(opt, 
-                                                         milestones=[40000, 60000], 
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(opt,
+                                                         milestones=[40000, 60000],
                                                          gamma=0.1)
         _iter = 0
 
         begin_time = time()
 
-        for epoch in range(1, args.max_epoch+1):
+        for epoch in range(1, args.max_epoch + 1):
             for data, label in tr_loader:
                 data, label = tensor2cuda(data), tensor2cuda(label)
 
                 if adv_train:
-                    # When training, the adversarial example is created from a random 
-                    # close point to the original data point. If in evaluation mode, 
+                    # When training, the adversarial example is created from a random
+                    # close point to the original data point. If in evaluation mode,
                     # just start from the original data point.
                     adv_data = self.attack.perturb(data, label, 'mean', True)
                     output = model(adv_data, _eval=False)
@@ -75,7 +76,7 @@ class Trainer():
                         adv_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy()) * 100
 
                     else:
-                        
+
                         adv_data = self.attack.perturb(data, label, 'mean', False)
 
                         with torch.no_grad():
@@ -92,7 +93,7 @@ class Trainer():
                     t2 = time()
 
                     logger.info(f'epoch: {epoch}, iter: {_iter}, lr={opt.param_groups[0]["lr"]}, '
-                                f'spent {time()-begin_time:.2f} s, tr_loss: {loss.item():.3f}')
+                                f'spent {time() - begin_time:.2f} s, tr_loss: {loss.item():.3f}')
 
                     logger.info(f'standard acc: {std_acc:.3f}%, robustness acc: {adv_acc:.3f}%')
 
@@ -110,8 +111,8 @@ class Trainer():
                     begin_time = time()
 
                 if _iter % args.n_store_image_step == 0:
-                    tv.utils.save_image(torch.cat([data.cpu(), adv_data.cpu()], dim=0), 
-                                        os.path.join(args.log_folder, f'images_{_iter}.jpg'), 
+                    tv.utils.save_image(torch.cat([data.cpu(), adv_data.cpu()], dim=0),
+                                        os.path.join(args.log_folder, f'images_{_iter}.jpg'),
                                         nrow=16)
 
                 if _iter % args.n_checkpoint_step == 0:
@@ -128,14 +129,13 @@ class Trainer():
                 va_acc, va_adv_acc = va_acc * 100.0, va_adv_acc * 100.0
 
                 t2 = time()
-                logger.info('\n'+'='*20 +f' evaluation at epoch: {epoch} iteration: {_iter} ' \
-                    +'='*20)
-                logger.info(f'test acc: {va_acc:.3f}%, test adv acc: {va_adv_acc:.3f}%, spent: {t2-t1:.3f} s')
-                logger.info('='*28+' end of evaluation '+'='*28+'\n')
-
+                logger.info('\n' + '=' * 20 + f' evaluation at epoch: {epoch} iteration: {_iter} ' \
+                            + '=' * 20)
+                logger.info(f'test acc: {va_acc:.3f}%, test adv acc: {va_adv_acc:.3f}%, spent: {t2 - t1:.3f} s')
+                logger.info('=' * 28 + ' end of evaluation ' + '=' * 28 + '\n')
 
     def test(self, args, model, loader, adv_test=False, use_pseudo_label=False):
-        # adv_test is False, return adv_acc as -1 
+        # adv_test is False, return adv_acc as -1
 
         total_acc = 0.0
         num = 0
@@ -152,7 +152,7 @@ class Trainer():
 
                 pred = torch.max(output, dim=1)[1]
                 te_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
-                
+
                 total_acc += te_acc
                 num += output.shape[0]
 
@@ -165,13 +165,13 @@ class Trainer():
                     adv_output = model(adv_data, _eval=True)
 
                     adv_pred = torch.max(adv_output, dim=1)[1]
-                    print(adv_pred)
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
 
                     # post attack
-                    post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = post_train(model, adv_data, train_loaders_by_class, args)
+                    post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = post_train(
+                        model, adv_data, train_loaders_by_class, args)
                     post_output = post_model(adv_data, _eval=True)
-                    post_pred = torch.max(adv_output, dim=1)[1]
+                    post_pred = torch.max(post_output, dim=1)[1]
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_post_acc += post_acc
 
@@ -179,10 +179,10 @@ class Trainer():
                 else:
                     total_adv_acc = -num
 
-        return total_acc / num , total_adv_acc / num
+        return total_acc / num, total_adv_acc / num
+
 
 def main(args):
-
     save_folder = '%s_%s' % (args.dataset, args.affix)
 
     log_folder = os.path.join(args.log_root, save_folder)
@@ -200,12 +200,12 @@ def main(args):
 
     model = WideResNet(depth=34, num_classes=10, widen_factor=10, dropRate=0.0)
 
-    attack = FastGradientSignUntargeted(model, 
-                                        args.epsilon, 
-                                        args.alpha, 
-                                        min_val=0, 
-                                        max_val=1, 
-                                        max_iters=args.k, 
+    attack = FastGradientSignUntargeted(model,
+                                        args.epsilon,
+                                        args.alpha,
+                                        min_val=0,
+                                        max_val=1,
+                                        max_iters=args.k,
                                         _type=args.perturbation_type)
 
     if torch.cuda.is_available():
@@ -215,31 +215,31 @@ def main(args):
 
     if args.todo == 'train':
         transform_train = tv.transforms.Compose([
-                tv.transforms.RandomCrop(32, padding=4, fill=0, padding_mode='constant'),
-                tv.transforms.RandomHorizontalFlip(),
-                tv.transforms.ToTensor(),
-            ])
-        tr_dataset = tv.datasets.CIFAR10(args.data_root, 
-                                       train=True, 
-                                       transform=transform_train, 
-                                       download=True)
+            tv.transforms.RandomCrop(32, padding=4, fill=0, padding_mode='constant'),
+            tv.transforms.RandomHorizontalFlip(),
+            tv.transforms.ToTensor(),
+        ])
+        tr_dataset = tv.datasets.CIFAR10(args.data_root,
+                                         train=True,
+                                         transform=transform_train,
+                                         download=True)
 
         tr_loader = DataLoader(tr_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
         # evaluation during training
-        te_dataset = tv.datasets.CIFAR10(args.data_root, 
-                                       train=False, 
-                                       transform=tv.transforms.ToTensor(), 
-                                       download=True)
+        te_dataset = tv.datasets.CIFAR10(args.data_root,
+                                         train=False,
+                                         transform=tv.transforms.ToTensor(),
+                                         download=True)
 
         te_loader = DataLoader(te_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
         trainer.train(model, tr_loader, te_loader, args.adv_train)
     elif args.todo == 'test':
-        te_dataset = tv.datasets.CIFAR10(args.data_root, 
-                                       train=False, 
-                                       transform=tv.transforms.ToTensor(), 
-                                       download=True)
+        te_dataset = tv.datasets.CIFAR10(args.data_root,
+                                         train=False,
+                                         transform=tv.transforms.ToTensor(),
+                                         download=True)
 
         te_loader = DataLoader(te_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
@@ -252,8 +252,6 @@ def main(args):
 
     else:
         raise NotImplementedError
-    
-
 
 
 if __name__ == '__main__':
