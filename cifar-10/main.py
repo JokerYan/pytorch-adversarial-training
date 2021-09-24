@@ -147,7 +147,6 @@ class Trainer():
         with torch.no_grad():
             for data, label in loader:
                 data, label = tensor2cuda(data), tensor2cuda(label)
-                print(label)
 
                 output = model(data, _eval=True)
 
@@ -166,6 +165,7 @@ class Trainer():
                     adv_output = model(adv_data, _eval=True)
 
                     adv_pred = torch.max(adv_output, dim=1)[1]
+                    print(adv_pred)
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_adv_acc += adv_acc
 
