@@ -96,20 +96,19 @@ def post_train(model, images, train_loaders_by_class, args):
     loss_func = nn.CrossEntropyLoss()
     device = torch.device('cuda')
     model = copy.deepcopy(model)
-    fix_model = copy.deepcopy(model)
     optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=0.9,
                                 nesterov=True)
     images = images.detach()
     with torch.enable_grad():
-        original_output = fix_model(images)
+        original_output = model(images, _eval=True)
         original_class = torch.argmax(original_output).reshape(1)
 
         neighbour_delta = attack_pgd(model, images, original_class, epsilon, alpha, attack_iters=20,
                                      restarts=1, random_start=False).detach()
         neighbour_images = neighbour_delta + images
-        neighbour_output = fix_model(neighbour_images)
+        neighbour_output = model(neighbour_images, _eval=True)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
         if original_class == neighbour_class:
