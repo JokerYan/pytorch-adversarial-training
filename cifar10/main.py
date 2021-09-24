@@ -177,6 +177,7 @@ class Trainer():
                     total_post_acc += post_acc
 
                     print("adv: {:.4f}\tpost: {:.4f}".format(total_adv_acc / num, total_post_acc / num))
+                    print("label: {}\toriginal: {}\tneighbour: {}".format(int(label), int(adv_pred), int(neighbour_class)))
                 else:
                     total_adv_acc = -num
 
