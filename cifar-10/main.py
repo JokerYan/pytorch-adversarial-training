@@ -12,6 +12,7 @@ from src.attack import FastGradientSignUntargeted
 from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate, save_model
 
 from src.argument import parser, print_args
+from post_utils import get_train_loaders_by_class, post_train
 
 class Trainer():
     def __init__(self, args, logger, attack):
@@ -133,12 +134,15 @@ class Trainer():
                 logger.info('='*28+' end of evaluation '+'='*28+'\n')
 
 
-    def test(self, model, loader, adv_test=False, use_pseudo_label=False):
+    def test(self, args, model, loader, adv_test=False, use_pseudo_label=False):
         # adv_test is False, return adv_acc as -1 
 
         total_acc = 0.0
         num = 0
         total_adv_acc = 0.0
+        total_post_acc = 0.0
+
+        train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
         with torch.no_grad():
             for data, label in loader:
@@ -155,16 +159,23 @@ class Trainer():
                 if adv_test:
                     # use predicted label as target label
                     with torch.enable_grad():
-                        adv_data = self.attack.perturb(data, 
-                                                       pred if use_pseudo_label else label, 
-                                                       'mean', 
-                                                       False)
+                        adv_data = self.attack.perturb(data, pred if use_pseudo_label else label,
+                                                       'mean', False)
 
                     adv_output = model(adv_data, _eval=True)
 
                     adv_pred = torch.max(adv_output, dim=1)[1]
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_adv_acc += adv_acc
+
+                    # post attack
+                    post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = post_train(model, images, train_loaders_by_class, args)
+                    post_output = post_model(adv_data, _eval=True)
+                    post_pred = torch.max(adv_output, dim=1)[1]
+                    post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    total_post_acc += post_acc
+
+                    print("adv: {:.4f}\tpost: {:.4f}".format(total_adv_acc / num, total_post_acc / num))
                 else:
                     total_adv_acc = -num
 
@@ -235,7 +246,7 @@ def main(args):
         checkpoint = torch.load(args.load_checkpoint)
         model.load_state_dict(checkpoint)
 
-        std_acc, adv_acc = trainer.test(model, te_loader, adv_test=True, use_pseudo_label=False)
+        std_acc, adv_acc = trainer.test(args, model, te_loader, adv_test=True, use_pseudo_label=False)
 
         print(f"std acc: {std_acc * 100:.3f}%, adv_acc: {adv_acc * 100:.3f}%")
 
