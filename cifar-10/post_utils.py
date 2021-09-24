@@ -68,6 +68,7 @@ def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None, ra
         delta.requires_grad = True
         for _ in range(attack_iters):
             output = model(X + delta)
+            print(y, torch.argmax(output))
             index = torch.where(output.max(1)[1] == y)
             if len(index[0]) == 0:
                 break
@@ -111,8 +112,6 @@ def post_train(model, images, train_loaders_by_class, args):
         neighbour_images = neighbour_delta + images
         neighbour_output = fix_model(neighbour_images)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
-        print(original_output)
-        print(neighbour_output)
 
         if original_class == neighbour_class:
             print('original class == neighbour class')
