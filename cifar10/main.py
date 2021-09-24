@@ -179,7 +179,7 @@ class Trainer():
 
                     total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
 
-                    print("Batch {}: adv: {:.4f}\tpost: {:.4f}\tneigh: {:.4f}".format(num-1, total_adv_acc / num, total_post_acc / num), total_neighbour_acc / num)
+                    print("Batch {}: adv: {:.4f}\tpost: {:.4f}\tneigh: {:.4f}".format(num-1, total_adv_acc / num, total_post_acc / num, total_neighbour_acc / num))
                     print("label: {}\toriginal: {}\tneighbour: {}".format(int(label), int(adv_pred), int(neighbour_class)))
                 else:
                     total_adv_acc = -num
