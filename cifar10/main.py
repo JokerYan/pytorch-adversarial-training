@@ -141,6 +141,7 @@ class Trainer():
         num = 0
         total_adv_acc = 0.0
         total_post_acc = 0.0
+        total_neighbour_acc = 0.1
 
         train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
@@ -176,7 +177,9 @@ class Trainer():
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_post_acc += post_acc
 
-                    print("Batch {}: adv: {:.4f}\tpost: {:.4f}".format(num-1, total_adv_acc / num, total_post_acc / num))
+                    total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
+
+                    print("Batch {}: adv: {:.4f}\tpost: {:.4f}\tneigh: {:.4f}".format(num-1, total_adv_acc / num, total_post_acc / num), total_neighbour_acc / num)
                     print("label: {}\toriginal: {}\tneighbour: {}".format(int(label), int(adv_pred), int(neighbour_class)))
                 else:
                     total_adv_acc = -num
