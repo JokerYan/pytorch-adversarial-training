@@ -3,7 +3,7 @@ import copy
 import torch
 import torch.nn as nn
 import torchvision as tv
-from torch.autograd.grad_mode import F
+import torch.nn.functional as F
 from torch.utils.data import Subset
 import apex.amp as amp
 
