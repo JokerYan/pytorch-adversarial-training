@@ -176,7 +176,7 @@ class Trainer():
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_post_acc += post_acc
 
-                    print("adv: {:.4f}\tpost: {:.4f}".format(total_adv_acc / num, total_post_acc / num))
+                    print("Batch {}: adv: {:.4f}\tpost: {:.4f}".format(num-1, total_adv_acc / num, total_post_acc / num))
                     print("label: {}\toriginal: {}\tneighbour: {}".format(int(label), int(adv_pred), int(neighbour_class)))
                 else:
                     total_adv_acc = -num
