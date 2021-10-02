@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 
 import torchvision as tv
 
+import pickle
 from time import time
 from src.model.madry_model import WideResNet
 from src.attack import FastGradientSignUntargeted
@@ -59,8 +60,13 @@ class Trainer():
                     total_adv_acc = -num
         adv_data_concat = torch.cat(adv_data_list, 0)
         label_concat = torch.cat(label_list, 0)
-        print(adv_data_concat.shape)
-        print(label_concat.shape)
+        # print(adv_data_concat.shape)
+        # print(label_concat.shape)
+        saved_adv = (adv_data_concat, label_concat)
+        saved_path = "../../data/cifar10_adv_madry.pickle"
+        with open(saved_path, "w") as f:
+            pickle.dump(saved_adv, f)
+            print("adv saved to path: {}".format(saved_path))
 
         return total_acc / num, total_adv_acc / num
 
