@@ -64,8 +64,8 @@ class Trainer():
         # print(label_concat.shape)
         saved_adv = (adv_data_concat, label_concat)
         saved_path = "../../data/cifar10_adv_madry.pickle"
-        with open(saved_path, "w") as f:
-            pickle.dump(saved_adv, f)
+        with open(saved_path, "wb") as f:
+            pickle.dump(saved_adv, f, protocol=pickle.HIGHEST_PROTOCOL)
             print("adv saved to path: {}".format(saved_path))
 
         return total_acc / num, total_adv_acc / num
