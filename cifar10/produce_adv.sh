@@ -1,0 +1,1 @@
+python produce_adv.py --todo test --data_root ../../data/ --batch_size 128 -e 0.0314 -a 0.03921 -p 'linf' --load_checkpoint 7step_2alpha_0.1lr.pth
