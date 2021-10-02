@@ -49,8 +49,8 @@ class Trainer():
                         adv_data = self.attack.perturb(data, pred if use_pseudo_label else label,
                                                        'mean', False)
 
-                    adv_data_list.append(adv_data)
-                    label_list.append(label)
+                    adv_data_list.append(adv_data.detach().cpu())
+                    label_list.append(label.detach().cpu())
                     adv_output = model(adv_data, _eval=True)
 
                     adv_pred = torch.max(adv_output, dim=1)[1]
@@ -62,6 +62,8 @@ class Trainer():
         label_concat = torch.cat(label_list, 0)
         # print(adv_data_concat.shape)
         # print(label_concat.shape)
+
+        # the Madry model does not seem to use any normalization, so the data can be saved directly
         saved_adv = (adv_data_concat, label_concat)
         saved_path = "../../data/cifar10_adv_madry.pickle"
         with open(saved_path, "wb") as f:
