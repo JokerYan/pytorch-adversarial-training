@@ -134,7 +134,7 @@ class Trainer():
                 logger.info(f'test acc: {va_acc:.3f}%, test adv acc: {va_adv_acc:.3f}%, spent: {t2 - t1:.3f} s')
                 logger.info('=' * 28 + ' end of evaluation ' + '=' * 28 + '\n')
 
-    def test(self, args, model, loader, adv_test=False, use_pseudo_label=False):
+    def test(self, args, model, train_loader, test_loader, adv_test=False, use_pseudo_label=False):
         # adv_test is False, return adv_acc as -1
 
         total_acc = 0.0
@@ -148,7 +148,7 @@ class Trainer():
         train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
         with torch.no_grad():
-            for data, label in loader:
+            for data, label in test_loader:
                 data, label = tensor2cuda(data), tensor2cuda(label)
 
                 output = model(data, _eval=True)
@@ -174,7 +174,7 @@ class Trainer():
 
                     # evaluate post model against adv
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
-                        post_train(model, adv_data, self.attack, train_loaders_by_class, args)
+                        post_train(model, adv_data, self.attack, train_loader, train_loaders_by_class, args)
                     post_output = post_model(adv_data, _eval=True)
                     post_pred = torch.max(post_output, dim=1)[1]
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
@@ -193,7 +193,7 @@ class Trainer():
 
                     # evaluate post model against natural
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
-                        post_train(model, data, self.attack, train_loaders_by_class, args)
+                        post_train(model, data, self.attack, train_loader, train_loaders_by_class, args)
                     post_normal_output = post_model(data, _eval=True)
                     post_normal_pred = torch.max(post_normal_output, dim=1)[1]
                     post_normal_acc = evaluate(post_normal_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
@@ -217,7 +217,8 @@ def main(args):
     setattr(args, 'log_folder', log_folder)
     setattr(args, 'model_folder', model_folder)
 
-    logger = create_logger(log_folder, args.todo, 'info')
+    # logger = create_logger(log_folder, args.todo, 'info')
+    logger = create_logger(args.log_file, args.todo, 'info')
 
     print_args(args, logger)
 
@@ -259,6 +260,18 @@ def main(args):
 
         trainer.train(model, tr_loader, te_loader, args.adv_train)
     elif args.todo == 'test':
+        transform_train = tv.transforms.Compose([
+            tv.transforms.RandomCrop(32, padding=4, fill=0, padding_mode='constant'),
+            tv.transforms.RandomHorizontalFlip(),
+            tv.transforms.ToTensor(),
+        ])
+        tr_dataset = tv.datasets.CIFAR10(args.data_root,
+                                         train=True,
+                                         transform=transform_train,
+                                         download=True)
+
+        tr_loader = DataLoader(tr_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
+
         te_dataset = tv.datasets.CIFAR10(args.data_root,
                                          train=False,
                                          transform=tv.transforms.ToTensor(),
@@ -269,7 +282,7 @@ def main(args):
         checkpoint = torch.load(args.load_checkpoint)
         model.load_state_dict(checkpoint)
 
-        std_acc, adv_acc = trainer.test(args, model, te_loader, adv_test=True, use_pseudo_label=False)
+        std_acc, adv_acc = trainer.test(args, model, tr_loader, te_loader, adv_test=True, use_pseudo_label=False)
 
         print(f"std acc: {std_acc * 100:.3f}%, adv_acc: {adv_acc * 100:.3f}%")
 

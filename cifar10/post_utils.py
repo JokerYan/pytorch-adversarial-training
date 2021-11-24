@@ -1,4 +1,5 @@
 import copy
+import random
 
 import torch
 import torch.nn as nn
@@ -90,7 +91,7 @@ def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None, ra
     return max_delta
 
 
-def post_train(model, images, model_attack, train_loaders_by_class, args):
+def post_train(model, images, model_attack, train_loader, train_loaders_by_class, args):
     alpha = (10 / 255) / std
     epsilon = (8 / 255) / std
     loss_func = nn.CrossEntropyLoss()
@@ -107,7 +108,11 @@ def post_train(model, images, model_attack, train_loaders_by_class, args):
 
         # neighbour_delta = attack_pgd(model, images, original_class, epsilon, alpha, attack_iters=20,
         #                              restarts=1, random_start=False).detach()
-        neighbour_delta = model_attack.perturb(images, original_class, 'mean', False) - images
+
+        if args.neigh_method == 'untargeted':
+            neighbour_delta = model_attack.perturb(images, original_class, 'mean', False) - images
+        else:
+            raise NotImplementedError
         neighbour_images = neighbour_delta + images
         neighbour_output = model(neighbour_images, _eval=True)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
@@ -119,27 +124,48 @@ def post_train(model, images, model_attack, train_loaders_by_class, args):
         loss_list = []
         acc_list = []
 
-        for _ in range(20):
-            original_data, original_label = next(iter(train_loaders_by_class[original_class]))
-            neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
+        for _ in range(args.pt_iter):
+            if args.pt_data == 'ori_neigh':
+                original_data, original_label = next(iter(train_loaders_by_class[original_class]))
+                neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
+            elif args.pt_data == 'ori_rand':
+                original_data, original_label = next(iter(train_loaders_by_class[original_class]))
+                neighbour_class = (original_class + random.randint(1, 10)) % 10
+                neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
+            elif args.pt_data == 'train':
+                original_data, original_label = next(iter(train_loader))
+                neighbour_data, neighbour_label = next(iter(train_loader))
+            else:
+                raise NotImplementedError
 
             data = torch.vstack([original_data, neighbour_data]).to(device)
             label = torch.hstack([original_label, neighbour_label]).to(device)
 
-            # # generate fgsm adv examplesp
-            # delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-            # noise_input = data + delta
-            # noise_input.requires_grad = True
-            # noise_output = model(noise_input)
-            # loss = loss_func(noise_output, label)  # loss to be maximized
-            # # loss = target_bce_loss_func(noise_output, label, original_class, neighbour_class)  # bce loss to be maximized
-            # input_grad = torch.autograd.grad(loss, noise_input)[0]
-            # delta = delta + alpha * torch.sign(input_grad)
-            # delta.clamp_(-epsilon, epsilon)
-            # adv_input = data + delta
-
-            # directed adv train
-            adv_input = data + -1 * neighbour_delta
+            if args.pt_method == 'adv':
+                # generate fgsm adv examples
+                delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+                noise_input = data + delta
+                noise_input.requires_grad = True
+                noise_output = model(noise_input)
+                loss = loss_func(noise_output, label)  # loss to be maximized
+                input_grad = torch.autograd.grad(loss, noise_input)[0]
+                delta = delta + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
+                adv_input = data + delta
+            elif args.pt_method == 'dir_adv':
+                # use fixed direction attack
+                if args.adv_dir == 'pos':
+                    adv_input = data + 1 * neighbour_delta
+                elif args.adv_dir == 'neg':
+                    adv_input = data + -1 * neighbour_delta
+                elif args.adv_dir == 'both':
+                    directed_delta = torch.vstack([torch.ones_like(original_data).to(device) * neighbour_delta,
+                                                    torch.ones_like(neighbour_data).to(device) * -1 * neighbour_delta])
+                    adv_input = data + directed_delta
+            elif args.pt_method == 'normal':
+                adv_input = data
+            else:
+                raise NotImplementedError
 
             adv_output = model(adv_input.detach())
 
