@@ -140,9 +140,10 @@ class Trainer():
         total_acc = 0.0
         num = 0
         total_adv_acc = 0.0
-        total_post_acc = 0.0
+        total_adv_post_acc = 0.0
         total_neighbour_acc = 0.0
-        total_post_normal_acc = 0.0
+        total_natural_acc = 0.0
+        total_natural_post_acc = 0.0
 
         train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
@@ -159,38 +160,45 @@ class Trainer():
                 num += output.shape[0]
 
                 if adv_test:
-                    # use predicted label as target label
                     with torch.enable_grad():
+                        # pseudo_label: use predicted label as target label
                         adv_data = self.attack.perturb(data, pred if use_pseudo_label else label,
                                                        'mean', False)
 
+                    # evaluate base model against adv
                     adv_output = model(adv_data, _eval=True)
-
                     adv_pred = torch.max(adv_output, dim=1)[1]
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_adv_acc += adv_acc
+                    self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
 
-                    # post attack
+                    # evaluate post model against adv
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
                         post_train(model, adv_data, self.attack, train_loaders_by_class, args)
                     post_output = post_model(adv_data, _eval=True)
                     post_pred = torch.max(post_output, dim=1)[1]
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
-                    total_post_acc += post_acc
+                    total_adv_post_acc += post_acc
+                    self.logger.info('Batch: {}\tpost adv acc: {:.4f}'.format(num, total_adv_post_acc / num))
 
-                    # post normal
+                    total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
+                    self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
+
+                    # evaluate base model against natural
+                    output = model(data, _eval=True)
+                    pred = torch.max(output, dim=1)[1]
+                    natural_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    total_natural_acc += natural_acc
+                    self.logger.info('Batch: {}\tbase natural acc: {:.4f}'.format(num, total_natural_acc / num))
+
+                    # evaluate post model against natural
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
                         post_train(model, data, self.attack, train_loaders_by_class, args)
                     post_normal_output = post_model(data, _eval=True)
                     post_normal_pred = torch.max(post_normal_output, dim=1)[1]
                     post_normal_acc = evaluate(post_normal_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
-                    total_post_normal_acc += post_normal_acc
-
-                    total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
-
-                    print("Batch {}: adv: {:.4f}\tpost adv: {:.4f}\t post normal: {:.4f}\tneigh: {:.4f}".format(
-                        num-1, total_adv_acc / num, total_post_acc / num, total_post_normal_acc / num, total_neighbour_acc / num))
-                    # print("label: {}\toriginal: {}\tneighbour: {}".format(int(label), int(adv_pred), int(neighbour_class)))
+                    total_natural_post_acc += post_normal_acc
+                    self.logger.info('Batch: {}\tpost natural acc: {:.4f}'.format(num, total_natural_post_acc / num))
                 else:
                     total_adv_acc = -num
 
