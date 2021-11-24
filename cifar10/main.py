@@ -149,6 +149,7 @@ class Trainer():
 
         with torch.no_grad():
             for data, label in test_loader:
+                self.logger.info('')
                 data, label = tensor2cuda(data), tensor2cuda(label)
 
                 output = model(data, _eval=True)
@@ -174,7 +175,7 @@ class Trainer():
 
                     # evaluate post model against adv
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
-                        post_train(model, adv_data, self.attack, train_loader, train_loaders_by_class, args)
+                        post_train(model, adv_data, self.attack, train_loader, train_loaders_by_class, self.logger, args)
                     post_output = post_model(adv_data, _eval=True)
                     post_pred = torch.max(post_output, dim=1)[1]
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
@@ -193,7 +194,7 @@ class Trainer():
 
                     # evaluate post model against natural
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
-                        post_train(model, data, self.attack, train_loader, train_loaders_by_class, args)
+                        post_train(model, data, self.attack, train_loader, train_loaders_by_class, self.logger, args)
                     post_normal_output = post_model(data, _eval=True)
                     post_normal_pred = torch.max(post_normal_output, dim=1)[1]
                     post_normal_acc = evaluate(post_normal_pred.cpu().numpy(), label.cpu().numpy(), 'sum')

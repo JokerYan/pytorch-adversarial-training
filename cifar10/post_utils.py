@@ -91,7 +91,7 @@ def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None, ra
     return max_delta
 
 
-def post_train(model, images, model_attack, train_loader, train_loaders_by_class, args):
+def post_train(model, images, model_attack, train_loader, train_loaders_by_class, logger, args):
     alpha = (10 / 255) / std
     epsilon = (8 / 255) / std
     loss_func = nn.CrossEntropyLoss()
@@ -118,7 +118,7 @@ def post_train(model, images, model_attack, train_loader, train_loaders_by_class
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
         if original_class == neighbour_class:
-            print('original class == neighbour class')
+            logger.info('original class == neighbour class')
             return model, original_class, neighbour_class, None, None, neighbour_delta
 
         loss_list = []
