@@ -10,9 +10,9 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --pt-data ori_neigh \
   --pt-method adv \
   --adv-dir na \
-  --neigh-method untargeted \
+  --neigh-method targeted \
   --pt-iter 50 \
   --pt-lr 0.001 \
   --att-iter 20 \
   --att-restart 1 \
-  --log-file logs/log_exp01_${TIMESTAMP}.txt
+  --log-file logs/log_exp05_${TIMESTAMP}.txt
