@@ -152,13 +152,13 @@ class Trainer():
                 self.logger.info('')
                 data, label = tensor2cuda(data), tensor2cuda(label)
 
-                output = model(data, _eval=True)
+                # output = model(data, _eval=True)
+                #
+                # pred = torch.max(output, dim=1)[1]
+                # te_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
 
-                pred = torch.max(output, dim=1)[1]
-                te_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
-
-                total_acc += te_acc
-                num += output.shape[0]
+                # total_acc += te_acc
+                num += data.shape[0]
 
                 if adv_test:
                     with torch.enable_grad():
@@ -203,7 +203,7 @@ class Trainer():
                 else:
                     total_adv_acc = -num
 
-        return total_acc / num, total_adv_acc / num
+        return total_natural_acc / num, total_adv_acc / num
 
 
 def main(args):
