@@ -165,8 +165,6 @@ class Trainer():
             for data, label in test_loader:
                 self.logger.info('')
                 data, label = tensor2cuda(data), tensor2cuda(label)
-                # debug print
-                print(data.shape)
 
                 # output = model(data, _eval=True)
                 #

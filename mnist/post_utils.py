@@ -37,6 +37,7 @@ def get_train_loaders_by_class(dir, batch_size):
                                       train=True,
                                       transform=tv.transforms.ToTensor(),
                                       download=True)
+    print(train_dataset[0][0].shape)
     indices_list = [[] for _ in range(10)]
     for i in range(len(train_dataset)):
         label = int(train_dataset[i][1])
