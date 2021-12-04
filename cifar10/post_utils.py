@@ -31,6 +31,7 @@ def clamp(X, lower_limit, upper_limit):
     return torch.max(torch.min(X, upper_limit), lower_limit)
 
 
+# CIFAR10
 def get_train_loaders_by_class(dir, batch_size):
     train_transform = tv.transforms.Compose([
         tv.transforms.RandomCrop(32, padding=4, fill=0, padding_mode='constant'),

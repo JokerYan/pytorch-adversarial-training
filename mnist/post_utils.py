@@ -31,15 +31,12 @@ def clamp(X, lower_limit, upper_limit):
     return torch.max(torch.min(X, upper_limit), lower_limit)
 
 
+# MNIST
 def get_train_loaders_by_class(dir, batch_size):
-    train_transform = tv.transforms.Compose([
-        tv.transforms.RandomCrop(32, padding=4, fill=0, padding_mode='constant'),
-        tv.transforms.RandomHorizontalFlip(),
-        tv.transforms.ToTensor(),
-    ])
-    train_dataset = tv.datasets.CIFAR10(
-        dir, train=True, transform=train_transform, download=True
-    )
+    train_dataset = tv.datasets.MNIST(dir,
+                                      train=True,
+                                      transform=tv.transforms.ToTensor(),
+                                      download=True)
     indices_list = [[] for _ in range(10)]
     for i in range(len(train_dataset)):
         label = int(train_dataset[i][1])
