@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   -e 0.3 \
   -a 0.01 \
   -p 'linf' \
-  --load_checkpoint checkpoint/mnist_/checkpoint_0.pth \
+  --load_checkpoint checkpoint/mnist_/checkpoint_12000.pth \
   --pt-data ori_neigh \
   --pt-method adv \
   --adv-dir na \
