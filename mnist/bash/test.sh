@@ -1,3 +1,4 @@
+TIMESTAMP=`date +%Y-%m-%d_%H-%M-%S`
 CUDA_VISIBLE_DEVICES=0 python main.py \
   --todo test \
   --data_root ../../data/ \
@@ -5,7 +6,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   -e 0.3 \
   -a 0.01 \
   -p 'linf' \
-  --load_checkpoint checkpoint/mnist_/checkpoint_12000.pth \
+  --load_checkpoint checkpoint/mnist_/checkpoint_14000.pth \
   --pt-data ori_neigh \
   --pt-method adv \
   --adv-dir na \
