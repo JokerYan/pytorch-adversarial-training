@@ -8,7 +8,7 @@ import torchvision as tv
 
 from time import time
 
-from mnist.post_utils import get_train_loaders_by_class, post_train
+from post_utils import get_train_loaders_by_class, post_train
 from src.model import Model
 from src.attack import FastGradientSignUntargeted
 from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate, save_model
