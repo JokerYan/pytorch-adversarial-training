@@ -288,7 +288,8 @@ def main(args):
         checkpoint = torch.load(args.load_checkpoint)
         model.load_state_dict(checkpoint)
 
-        std_acc, adv_acc = trainer.test_post(args, model, tr_loader, te_loader, adv_test=True, use_pseudo_label=False)
+        # std_acc, adv_acc = trainer.test_post(args, model, tr_loader, te_loader, adv_test=True, use_pseudo_label=False)
+        std_acc, adv_acc = 0, trainer.test(model, te_loader, adv_test=True)
 
         print(f"std acc: {std_acc * 100:.3f}%, adv_acc: {adv_acc * 100:.3f}%")
     else:
