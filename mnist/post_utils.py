@@ -37,7 +37,6 @@ def get_train_loaders_by_class(dir, batch_size):
                                       train=True,
                                       transform=tv.transforms.ToTensor(),
                                       download=True)
-    print(train_dataset[0][0].shape)
     indices_list = [[] for _ in range(10)]
     for i in range(len(train_dataset)):
         label = int(train_dataset[i][1])
@@ -138,6 +137,8 @@ def post_train(model, images, model_attack, train_loader, train_loaders_by_class
 
             data = torch.vstack([original_data, neighbour_data]).to(device)
             label = torch.hstack([original_label, neighbour_label]).to(device)
+
+            print(data.shape)
 
             if args.pt_method == 'adv':
                 # generate fgsm adv examples
