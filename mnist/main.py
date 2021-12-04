@@ -129,6 +129,7 @@ class Trainer():
 
                 pred = torch.max(output, dim=1)[1]
                 te_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                print(te_acc)
                 
                 total_acc += te_acc
                 num += output.shape[0]
