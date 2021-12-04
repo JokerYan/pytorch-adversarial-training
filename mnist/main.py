@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 import torchvision as tv
 
 from time import time
+
+from mnist.post_utils import get_train_loaders_by_class, post_train
 from src.model import Model
 from src.attack import FastGradientSignUntargeted
 from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate, save_model
@@ -146,6 +148,78 @@ class Trainer():
 
         return total_acc / num , total_adv_acc / num
 
+    def test_post(self, args, model, train_loader, test_loader, adv_test=False, use_pseudo_label=False):
+        # adv_test is False, return adv_acc as -1
+
+        total_acc = 0.0
+        num = 0
+        total_adv_acc = 0.0
+        total_adv_post_acc = 0.0
+        total_neighbour_acc = 0.0
+        total_natural_acc = 0.0
+        total_natural_post_acc = 0.0
+
+        train_loaders_by_class = get_train_loaders_by_class(args.data_root, 64)
+
+        with torch.no_grad():
+            for data, label in test_loader:
+                self.logger.info('')
+                data, label = tensor2cuda(data), tensor2cuda(label)
+
+                # output = model(data, _eval=True)
+                #
+                # pred = torch.max(output, dim=1)[1]
+                # te_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+
+                # total_acc += te_acc
+                num += data.shape[0]
+
+                if adv_test:
+                    with torch.enable_grad():
+                        # pseudo_label: use predicted label as target label
+                        adv_data = self.attack.perturb(data, pred if use_pseudo_label else label,
+                                                       'mean', False)
+
+                    # evaluate base model against adv
+                    adv_output = model(adv_data, _eval=True)
+                    adv_pred = torch.max(adv_output, dim=1)[1]
+                    adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    total_adv_acc += adv_acc
+                    self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
+
+                    # evaluate post model against adv
+                    post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
+                        post_train(model, adv_data, self.attack, train_loader, train_loaders_by_class, self.logger, args)
+                    post_output = post_model(adv_data, _eval=True)
+                    post_pred = torch.max(post_output, dim=1)[1]
+                    post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    total_adv_post_acc += post_acc
+                    self.logger.info('Batch: {}\tpost adv acc: {:.4f}'.format(num, total_adv_post_acc / num))
+
+                    total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
+                    self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
+
+                    # evaluate base model against natural
+                    output = model(data, _eval=True)
+                    pred = torch.max(output, dim=1)[1]
+                    natural_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    total_natural_acc += natural_acc
+                    self.logger.info('Batch: {}\tbase natural acc: {:.4f}'.format(num, total_natural_acc / num))
+
+                    # evaluate post model against natural
+                    post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
+                        post_train(model, data, self.attack, train_loader, train_loaders_by_class, self.logger, args)
+                    post_normal_output = post_model(data, _eval=True)
+                    post_normal_pred = torch.max(post_normal_output, dim=1)[1]
+                    post_normal_acc = evaluate(post_normal_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    total_natural_post_acc += post_normal_acc
+                    self.logger.info('Batch: {}\tpost natural acc: {:.4f}'.format(num, total_natural_post_acc / num))
+                else:
+                    total_adv_acc = -num
+
+        return total_natural_acc / num, total_adv_acc / num
+
+
 def main(args):
 
     save_folder = '%s_%s' % (args.dataset, args.affix)
@@ -196,7 +270,27 @@ def main(args):
 
         trainer.train(model, tr_loader, te_loader, args.adv_train)
     elif args.todo == 'test':
-        pass
+        tr_dataset = tv.datasets.MNIST(args.data_root,
+                                       train=True,
+                                       transform=tv.transforms.ToTensor(),
+                                       download=True)
+
+        tr_loader = DataLoader(tr_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
+
+        # evaluation during training
+        te_dataset = tv.datasets.MNIST(args.data_root,
+                                       train=False,
+                                       transform=tv.transforms.ToTensor(),
+                                       download=True)
+
+        te_loader = DataLoader(te_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
+
+        checkpoint = torch.load(args.load_checkpoint)
+        model.load_state_dict(checkpoint)
+
+        std_acc, adv_acc = trainer.test_post(args, model, tr_loader, te_loader, adv_test=True, use_pseudo_label=False)
+
+        print(f"std acc: {std_acc * 100:.3f}%, adv_acc: {adv_acc * 100:.3f}%")
     else:
         raise NotImplementedError
     
