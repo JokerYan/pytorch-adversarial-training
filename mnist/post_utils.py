@@ -9,8 +9,8 @@ from torch.utils.data import Subset
 import apex.amp as amp
 
 
-mu = torch.zeros([3, 1, 1]).cuda()
-std = torch.ones([3, 1, 1]).cuda()
+mu = torch.zeros([1, 1, 1]).cuda()
+std = torch.ones([1, 1, 1]).cuda()
 
 upper_limit = ((1 - mu)/ std)
 lower_limit = ((0 - mu)/ std)
@@ -137,8 +137,6 @@ def post_train(model, images, model_attack, train_loader, train_loaders_by_class
 
             data = torch.vstack([original_data, neighbour_data]).to(device)
             label = torch.hstack([original_label, neighbour_label]).to(device)
-
-            print(data.shape)
 
             if args.pt_method == 'adv':
                 # generate fgsm adv examples
