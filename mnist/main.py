@@ -193,6 +193,10 @@ class Trainer():
                     post_output = post_model(adv_data, _eval=True)
                     post_pred = torch.max(post_output, dim=1)[1]
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
+                    # dedug
+                    if adv_acc != 1:
+                        print(adv_output)
+                        print(post_output)
                     total_adv_post_acc += post_acc
                     self.logger.info('Batch: {}\tpost adv acc: {:.4f}'.format(num, total_adv_post_acc / num))
 
