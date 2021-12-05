@@ -200,6 +200,7 @@ class Trainer():
                     # dedug
                     if adv_acc != 1:
                         print(label, original_class, neighbour_class)
+                        print("Post Acc: {}".format(post_acc))
                         print(adv_output)
                         print(post_output)
                     total_adv_post_acc += post_acc
