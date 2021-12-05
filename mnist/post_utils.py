@@ -163,7 +163,7 @@ def post_train(model, images, model_attack, train_loader, train_loaders_by_class
                     adv_input = data + directed_delta
             elif args.pt_method == 'normal':
                 adv_input = data
-                # debug use full adv
+            elif args.pt_method == 'pgd':
                 adv_input = model_attack.perturb(data, label, 'mean', False)
             else:
                 raise NotImplementedError

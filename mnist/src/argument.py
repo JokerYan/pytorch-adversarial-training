@@ -40,7 +40,7 @@ def parser():
 
     # post train related
     parser.add_argument('--pt-data', default='ori_neigh', choices=['ori_rand', 'ori_neigh', 'train'], type=str)
-    parser.add_argument('--pt-method', default='adv', choices=['adv', 'dir_adv', 'normal'], type=str)
+    parser.add_argument('--pt-method', default='adv', choices=['adv', 'dir_adv', 'normal', 'pgd'], type=str)
     parser.add_argument('--adv-dir', default='na', choices=['na', 'pos', 'neg', 'both'], type=str)
     parser.add_argument('--neigh-method', default='untargeted', choices=['untargeted', 'targeted'], type=str)
     parser.add_argument('--pt-iter', default=50, type=int)
