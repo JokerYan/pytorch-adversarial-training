@@ -8,10 +8,10 @@ CUDA_VISIBLE_DEVICES=6 python main.py \
   -p 'linf' \
   --load_checkpoint checkpoint/mnist_/checkpoint_56000.pth \
   --pt-data ori_neigh \
-  --pt-method adv \
+  --pt-method normal \
   --adv-dir na \
   --neigh-method untargeted \
-  --pt-iter 500 \
+  --pt-iter 20 \
   --pt-lr 0.001 \
   --att-iter 40 \
   --att-restart 1 \
