@@ -209,6 +209,12 @@ class Trainer():
                     total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
                     self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
 
+                    # debug
+                    if adv_acc < post_acc:
+                        self.logger.info('-- improve')
+                    elif adv_acc > post_acc:
+                        self.logger.info('|| worsen')
+
                     # evaluate base model against natural
                     output = model(data, _eval=True)
                     pred = torch.max(output, dim=1)[1]
