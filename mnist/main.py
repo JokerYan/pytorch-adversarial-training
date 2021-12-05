@@ -199,10 +199,10 @@ class Trainer():
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     # dedug
                     if adv_acc != 1:
-                        print(label, original_class, neighbour_class)
-                        print("Post Acc: {}".format(post_acc))
-                        print(adv_output)
-                        print(post_output)
+                        self.logger.info(label, original_class, neighbour_class)
+                        self.logger.info("Post Acc: {}".format(post_acc))
+                        self.logger.info(adv_output)
+                        self.logger.info(post_output)
                     total_adv_post_acc += post_acc
                     self.logger.info('Batch: {}\tpost adv acc: {:.4f}'.format(num, total_adv_post_acc / num))
 
