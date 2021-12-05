@@ -221,19 +221,34 @@ class Trainer():
 
 
 def main(args):
+    if args.todo == 'train':
+        save_folder = '%s_%s' % (args.dataset, args.affix)
 
-    save_folder = '%s_%s' % (args.dataset, args.affix)
+        log_folder = os.path.join(args.log_root, save_folder)
+        model_folder = os.path.join(args.model_root, save_folder)
 
-    log_folder = os.path.join(args.log_root, save_folder)
-    model_folder = os.path.join(args.model_root, save_folder)
+        makedirs(log_folder)
+        makedirs(model_folder)
 
-    makedirs(log_folder)
-    makedirs(model_folder)
+        setattr(args, 'log_folder', log_folder)
+        setattr(args, 'model_folder', model_folder)
 
-    setattr(args, 'log_folder', log_folder)
-    setattr(args, 'model_folder', model_folder)
+        logger = create_logger(log_folder, args.todo, 'info')
+    else:
+        save_folder = '%s_%s' % (args.dataset, args.affix)
 
-    logger = create_logger(log_folder, args.todo, 'info')
+        # log_folder = os.path.join(args.log_root, save_folder)
+        log_folder = os.path.join(args.log_root, '')
+        model_folder = os.path.join(args.model_root, save_folder)
+
+        makedirs(log_folder)
+        makedirs(model_folder)
+
+        setattr(args, 'log_folder', log_folder)
+        setattr(args, 'model_folder', model_folder)
+
+        # logger = create_logger(log_folder, args.todo, 'info')
+        logger = create_logger(args.log_file, args.todo, 'info')
 
     print_args(args, logger)
 
