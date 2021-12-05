@@ -11,8 +11,8 @@ CUDA_VISIBLE_DEVICES=6 python main.py \
   --pt-method normal \
   --adv-dir na \
   --neigh-method untargeted \
-  --pt-iter 20 \
-  --pt-lr 0.001 \
+  --pt-iter 50 \
+  --pt-lr 0.01 \
   --att-iter 40 \
   --att-restart 1 \
   --log-file logs/log_test_${TIMESTAMP}.txt
