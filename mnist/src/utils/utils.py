@@ -64,7 +64,10 @@ def create_logger(save_path='', file_type='', level='debug'):
     logger.addHandler(cs)
 
     if save_path != '':
-        file_name = os.path.join(save_path, file_type + '_log.txt')
+        if not save_path.endswith('.txt'):
+            file_name = os.path.join(save_path, file_type + '_log.txt')
+        else:
+            file_name = save_path
         fh = logging.FileHandler(file_name, mode='w')
         fh.setLevel(_level)
 
