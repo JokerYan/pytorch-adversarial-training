@@ -195,6 +195,7 @@ class Trainer():
                     post_acc = evaluate(post_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     # dedug
                     if adv_acc != 1:
+                        print(label, original_class, neighbour_class)
                         print(adv_output)
                         print(post_output)
                     total_adv_post_acc += post_acc
