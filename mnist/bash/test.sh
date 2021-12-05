@@ -11,7 +11,7 @@ CUDA_VISIBLE_DEVICES=6 python main.py \
   --pt-method dir_adv \
   --adv-dir both \
   --neigh-method untargeted \
-  --pt-iter 50 \
+  --pt-iter 200 \
   --pt-lr 0.001 \
   --att-iter 40 \
   --att-restart 1 \
