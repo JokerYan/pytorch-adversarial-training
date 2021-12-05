@@ -89,8 +89,10 @@ def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None, ra
 
 
 def post_train(model, images, model_attack, train_loader, train_loaders_by_class, logger, args):
-    alpha = (10 / 255) / std
-    epsilon = (8 / 255) / std
+    # alpha = (10 / 255) / std
+    # epsilon = (8 / 255) / std
+    alpha = 0.01 / std
+    epsilon = 0.3 / std
     loss_func = nn.CrossEntropyLoss()
     device = torch.device('cuda')
     model = copy.deepcopy(model)
