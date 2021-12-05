@@ -187,9 +187,9 @@ class Trainer():
                     total_adv_acc += adv_acc
                     self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
 
-                    # # debug jump
-                    # if adv_acc == 1:
-                    #     continue
+                    # debug jump
+                    if adv_acc == 1:
+                        continue
 
                     # evaluate post model against adv
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
