@@ -15,4 +15,4 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --pt-lr 0.001 \
   --att-iter 40 \
   --att-restart 1 \
-  --log-file logs/log_test_${TIMESTAMP}.txt
+  --log-file logs/log_exp01_${TIMESTAMP}.txt
