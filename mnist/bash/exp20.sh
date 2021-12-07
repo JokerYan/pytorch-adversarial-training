@@ -15,4 +15,4 @@ CUDA_VISIBLE_DEVICES=1 python main.py \
   --pt-lr 0.01 \
   --att-iter 40 \
   --att-restart 1 \
-  --log-file logs/log_exp19_${TIMESTAMP}.txt
+  --log-file logs/log_exp20_${TIMESTAMP}.txt
