@@ -1,1 +1,0 @@
-CUDA_VISIBLE_DEVICES=0 python main.py --data_root ../../data/ -e 0.3 -p 'linf' --adv_train --affix 1
