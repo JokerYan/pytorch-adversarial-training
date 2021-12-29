@@ -99,13 +99,8 @@ def visualize_decision_boundary(model, natural_input, adv_input, neighbor_input,
 
 
 def visualize_cam(x, cam, index):
-    cifar10_mean = np.array([0.4914, 0.4822, 0.4465])
-    cifar10_std = np.array([0.2471, 0.2435, 0.2616])
-    cifar10_mean = np.expand_dims(cifar10_mean, axis=(1, 2))
-    cifar10_std = np.expand_dims(cifar10_std, axis=(1, 2))
-
     x = np.squeeze(x.cpu().numpy())
-    x = 255 * (cifar10_std * x + cifar10_mean)
+    x = 255 * x
     x = np.transpose(x, [1, 2, 0])
     cv2.imwrite('./debug/input_{}.jpg'.format(index), x)
     fig, ax = plt.subplots()
@@ -127,3 +122,6 @@ def visualize_grad(model, x, y, index):
         fig, ax = plt.subplots()
         cam = ax.imshow(grad_sample)
         plt.savefig('./debug/grad_{}_madry.jpg'.format(index))
+
+        x = 255 * np.transpose(x, [1, 2, 0])
+        cv2.imwrite('./debug/input_{}_madry.jpg'.format(index), x)
