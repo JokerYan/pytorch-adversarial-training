@@ -116,6 +116,7 @@ def visualize_cam(x, cam, index):
 def visualize_grad(model, x, y, index):
     loss_func = torch.nn.CrossEntropyLoss()
     with torch.enable_grad():
+        x = x.detach()
         x.requires_grad = True
         output = model(x)
         loss = loss_func(output, y)  # loss to be maximized
