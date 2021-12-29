@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 import torchvision as tv
 
 from time import time
+
+from cifar10.visualize import visualize_grad
 from src.model.madry_model import WideResNet
 from src.attack import FastGradientSignUntargeted
 from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate, save_model
@@ -148,7 +150,7 @@ class Trainer():
         train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
         with torch.no_grad():
-            for data, label in test_loader:
+            for i, (data, label) in enumerate(test_loader):
                 self.logger.info('')
                 data, label = tensor2cuda(data), tensor2cuda(label)
 
@@ -184,6 +186,10 @@ class Trainer():
 
                     total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
                     self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
+
+                    # visualize grad
+                    visualize_grad(model, adv_data, label, i)
+                    visualize_grad(post_model, adv_data, label, str(i) + "_post")
 
                     # evaluate base model against natural
                     output = model(data, _eval=True)

@@ -1,196 +1,127 @@
-
-import os
+import cv2
 import torch
-import torchvision as tv
 import numpy as np
-
-from torch.utils.data import DataLoader
-
-from src.utils import makedirs, tensor2cuda, load_model, LabelDict
-from argument import parser
-from src.visualization import VanillaBackprop
-from src.model.madry_model import WideResNet
-
-import matplotlib.pyplot as plt 
-
-img_folder = 'img'
-makedirs(img_folder)
-out_num = 5
-
-
-args = parser()
-
-label_dict = LabelDict(args.dataset)
-
-te_dataset = tv.datasets.CIFAR10(args.data_root, 
-                               train=False, 
-                               transform=tv.transforms.ToTensor(), 
-                               download=True)
-
-te_loader = DataLoader(te_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
-
-
-for data, label in te_loader:
-
-    data, label = tensor2cuda(data), tensor2cuda(label)
-
-
-    break
-
-
-model = WideResNet(depth=34, num_classes=10, widen_factor=10, dropRate=0.0)
-
-load_model(model, args.load_checkpoint)
-
-if torch.cuda.is_available():
-    model.cuda()
-
-VBP = VanillaBackprop(model)
-
-grad = VBP.generate_gradients(data, label)
-
-grad_flat = grad.view(grad.shape[0], -1)
-mean = grad_flat.mean(1, keepdim=True).unsqueeze(2).unsqueeze(3)
-std = grad_flat.std(1, keepdim=True).unsqueeze(2).unsqueeze(3)
-
-mean = mean.repeat(1, 1, data.shape[2], data.shape[3])
-std = std.repeat(1, 1, data.shape[2], data.shape[3])
-
-grad = torch.max(torch.min(grad, mean+3*std), mean-3*std)
-
-print(grad.min(), grad.max())
-
-grad -= grad.min()
-
-grad /= grad.max()
-
-grad = grad.cpu().numpy().squeeze()  # (N, 28, 28)
-
-grad *= 255.0
-
-label = label.cpu().numpy()
-
-data = data.cpu().numpy().squeeze()
-
-data *= 255.0
-
-out_list = [data, grad]
-
-types = ['Original', 'Your Model']
-
-fig, _axs = plt.subplots(nrows=len(out_list), ncols=out_num)
-
-axs = _axs
-
-for j, _type in enumerate(types):
-    axs[j, 0].set_ylabel(_type)
-
-    # if j == 0:
-    #     cmap = 'gray'
-    # else:
-    #     cmap = 'seismic'
-
-    for i in range(out_num):
-        axs[j, i].set_xlabel('%s' % label_dict.label2class(label[i]))
-        img = out_list[j][i]
-        # print(img)
-        img = np.transpose(img, (1, 2, 0))
-
-        img = img.astype(np.uint8)
-        axs[j, i].imshow(img)
-
-        axs[j, i].get_xaxis().set_ticks([])
-        axs[j, i].get_yaxis().set_ticks([])
-
-plt.tight_layout()
-plt.savefig(os.path.join(img_folder, 'cifar_grad_%s.jpg' % args.affix))
-
-# types = ['Original', 'Standard', r'$l_{\infty}$-trained', r'$l_2$-trained']
-
-
-# model_checkpoints = ['checkpoint/cifar-10_std/checkpoint_76000.pth',
-#                      'checkpoint/cifar-10_linf/checkpoint_76000.pth', 
-#                      'checkpoint/cifar-10_l2/checkpoint_76000.pth']
-
-
-# out_list = []
-
-# for checkpoint in model_checkpoints:
-
-#     model = WideResNet(depth=34, num_classes=10, widen_factor=10, dropRate=0.0)
-
-#     load_model(model, checkpoint)
-
-#     if torch.cuda.is_available():
-#         model.cuda()
-
-#     VBP = VanillaBackprop(model)
-
-#     grad = VBP.generate_gradients(data, label)
-
-#     grad_flat = grad.view(grad.shape[0], -1)
-#     mean = grad_flat.mean(1, keepdim=True).unsqueeze(2).unsqueeze(3)
-#     std = grad_flat.std(1, keepdim=True).unsqueeze(2).unsqueeze(3)
-
-#     mean = mean.repeat(1, 1, data.shape[2], data.shape[3])
-#     std = std.repeat(1, 1, data.shape[2], data.shape[3])
-
-#     grad = torch.max(torch.min(grad, mean+3*std), mean-3*std)
-
-#     print(grad.min(), grad.max())
-
-#     grad -= grad.min()
-
-#     grad /= grad.max()
-
-#     grad = grad.cpu().numpy().squeeze()  # (N, 28, 28)
-
-#     grad *= 255.0
-
-#     out_list.append(grad)
-
-# data = data.cpu().numpy().squeeze()  # (N, 28, 28)
-# data *= 255.0
-# label = label.cpu().numpy()
-
-# out_list.insert(0, data)
-
-# # normalize the grad
-# # length = torch.norm(grad, dim=3)
-# # length = torch.norm(length, dim=2)
-# # length = length.unsqueeze(2).unsqueeze(2)
-# # grad /= (length + 1e-5)
-
-# out_num = 5
-
-# fig, _axs = plt.subplots(nrows=len(out_list), ncols=out_num)
-
-# axs = _axs
-
-
-# for j, _type in enumerate(types):
-#     axs[j, 0].set_ylabel(_type)
-
-#     # if j == 0:
-#     #     cmap = 'gray'
-#     # else:
-#     #     cmap = 'seismic'
-
-#     for i in range(out_num):
-
-#         data_id = i + 0
-
-#         axs[j, i].set_xlabel('%s' % label_dict.label2class(label[data_id]))
-        
-#         img = out_list[j][data_id]
-#         # print(img)
-#         img = np.transpose(img, (1, 2, 0))
-
-#         img = img.astype(np.uint8)
-#         axs[j, i].imshow(img)
-
-#         axs[j, i].get_xaxis().set_ticks([])
-#         axs[j, i].get_yaxis().set_ticks([])
-
-# plt.tight_layout()
-# plt.savefig(os.path.join(img_folder, 'cifar_grad_%s.jpg' % args.affix))
+import matplotlib
+
+matplotlib.use('Agg')
+from matplotlib import cm
+from matplotlib import pyplot as plt
+
+
+cifar10_mean = (0.4914, 0.4822, 0.4465)
+cifar10_std = (0.2471, 0.2435, 0.2616)
+
+
+mu = torch.tensor(cifar10_mean).view(3,1,1).cuda()
+std = torch.tensor(cifar10_std).view(3,1,1).cuda()
+
+
+def visualize_loss_surface(base_model, loss_model_list, loss_model_name_list, image, label, attack_func):
+    loss_func = torch.nn.CrossEntropyLoss()
+    epsilon = (8 / 255.) / std
+    alpha = (2 / 255.) / std
+    step_count = 10  # including origin
+    pgd_delta_list = []
+    for i in range(2):
+        pgd_delta = attack_func(base_model, image, label, epsilon, alpha, 50, 10, opt=None)
+        pgd_delta_list.append(pgd_delta)
+    with torch.no_grad():
+        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        for model_index, loss_model in enumerate(loss_model_list):
+            loss_surface = torch.zeros(step_count, step_count)
+            delta_axis_x = torch.zeros(step_count)
+            delta_axis_y = torch.zeros(step_count)
+            for i in range(step_count):
+                for j in range(step_count):
+                    # delta_axis_x[i] = torch.norm(pgd_delta_list[0] * i / step_count, p=2)
+                    # delta_axis_y[j] = torch.norm(pgd_delta_list[1] * j / step_count, p=2)
+                    delta_axis_x[i] = i
+                    delta_axis_y[j] = j
+                    mix_delta = pgd_delta_list[0] * i / step_count \
+                                + pgd_delta_list[1] * j / step_count
+                    mix_image = image + mix_delta
+                    mix_output = loss_model(mix_image)
+                    mix_loss = loss_func(mix_output, label)
+                    loss_surface[i][j] = mix_loss
+            # print(loss_surface)
+            delta_axis_x, delta_axis_y = np.meshgrid(delta_axis_x.detach().cpu().numpy(), delta_axis_y.detach().cpu().numpy())
+            loss_surface = loss_surface.detach().cpu().numpy()
+
+            surf = ax.plot_surface(delta_axis_x, delta_axis_y, loss_surface, label=loss_model_name_list[model_index])
+            surf._facecolors2d = surf._facecolor3d
+            surf._edgecolors2d = surf._edgecolor3d
+        ax.legend()
+        plt.savefig('./loss_surface.png')
+        print('loss surface plot saved')
+        plt.close()
+
+
+def visualize_decision_boundary(model, natural_input, adv_input, neighbor_input, index):
+    resolution = 20
+
+    # coordinate: (row, column)
+    natural_pos = [resolution / 4, resolution / 4]
+    adv_pos = [resolution * 3 / 4, resolution / 4]
+    neighbor_pos = [resolution / 4, resolution * 3 / 4]
+
+    delta1 = (adv_input - natural_input) / (adv_pos[0] - natural_pos[0])
+    delta2 = (neighbor_input - natural_input) / (neighbor_pos[1] - natural_pos[1])
+    pred_matrix = np.zeros([resolution, resolution])
+
+    nat_pred = torch.argmax(model(natural_input))
+    adv_pred = torch.argmax(model(adv_input))
+    neigh_pred = torch.argmax(model(neighbor_input))
+
+    for i in range(resolution):
+        for j in range(resolution):
+            cur_input = natural_input + (i - natural_pos[0]) * delta1 + (j - natural_pos[1]) * delta2
+            cur_output = model(cur_input)
+            if i == neighbor_pos[0] and j == neighbor_pos[1]:
+                assert torch.argmax(cur_output) == nat_pred
+            pred_matrix[i][j] = torch.argmax(cur_output)
+    print(pred_matrix)
+    fig, ax = plt.subplots()
+    ax.get_yaxis().set_visible(False)
+    ax.get_xaxis().set_visible(False)
+    im = ax.imshow(pred_matrix)
+
+    # add text, coordinate: (column, row)
+    plt.text(natural_pos[1], natural_pos[0], 'x', fontsize=12, horizontalalignment='center',
+             verticalalignment='center', c='white' if nat_pred < 5 else 'black')
+    plt.text(adv_pos[1], adv_pos[0], 'x\'', fontsize=12, horizontalalignment='center',
+             verticalalignment='center', c='white' if adv_pred < 5 else 'black')
+    plt.text(neighbor_pos[1], neighbor_pos[0], 'x\'\'', fontsize=12, horizontalalignment='center',
+             verticalalignment='center', c='white' if neigh_pred < 5 else 'black')
+
+    plt.savefig('./debug/decision_boundary_{}.png'.format(index))
+    print('decision boundary plot saved')
+    plt.close()
+
+
+def visualize_cam(x, cam, index):
+    cifar10_mean = np.array([0.4914, 0.4822, 0.4465])
+    cifar10_std = np.array([0.2471, 0.2435, 0.2616])
+    cifar10_mean = np.expand_dims(cifar10_mean, axis=(1, 2))
+    cifar10_std = np.expand_dims(cifar10_std, axis=(1, 2))
+
+    x = np.squeeze(x.cpu().numpy())
+    x = 255 * (cifar10_std * x + cifar10_mean)
+    x = np.transpose(x, [1, 2, 0])
+    cv2.imwrite('./debug/input_{}.jpg'.format(index), x)
+    fig, ax = plt.subplots()
+    cam = ax.imshow(cam)
+    plt.savefig('./debug/cam_{}.jpg'.format(index))
+
+
+def visualize_grad(model, x, y, index):
+    loss_func = torch.nn.CrossEntropyLoss()
+    with torch.enable_grad():
+        x.requires_grad = True
+        output = model(x)
+        loss = loss_func(output, y)  # loss to be maximized
+        grad = torch.autograd.grad(loss, x)[0].detach().cpu().numpy()
+
+        grad_sample = grad[0][0]
+        fig, ax = plt.subplots()
+        cam = ax.imshow(grad_sample)
+        plt.savefig('./debug/grad_{}.jpg'.format(index))
