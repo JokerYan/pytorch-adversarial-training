@@ -188,8 +188,8 @@ class Trainer():
                     self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
 
                     # visualize grad
-                    visualize_grad(model, adv_data, label, i)
-                    visualize_grad(post_model, adv_data, label, str(i) + "_post")
+                    visualize_grad(model, data, label, i)
+                    visualize_grad(post_model, data, label, str(i) + "_post")
 
                     # evaluate base model against natural
                     output = model(data, _eval=True)
