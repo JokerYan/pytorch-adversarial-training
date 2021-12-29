@@ -123,6 +123,6 @@ def visualize_grad(model, x, y, index):
         cam = ax.imshow(grad_sample)
         plt.savefig('./debug/grad_{}_madry.jpg'.format(index))
 
-        x = np.squeeze(x.cpu().numpy())
+        x = np.squeeze(x.detach().cpu().numpy())
         x = 255 * np.transpose(x, [1, 2, 0])
         cv2.imwrite('./debug/input_{}_madry.jpg'.format(index), x)
