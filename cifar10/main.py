@@ -8,7 +8,7 @@ import torchvision as tv
 
 from time import time
 
-from cifar10.visualize import visualize_grad
+from visualize import visualize_grad
 from src.model.madry_model import WideResNet
 from src.attack import FastGradientSignUntargeted
 from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate, save_model
