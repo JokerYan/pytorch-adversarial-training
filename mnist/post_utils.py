@@ -70,11 +70,8 @@ def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None, ra
             if len(index[0]) == 0:
                 break
             loss = F.cross_entropy(output, y)
-            if opt is not None:
-                with amp.scale_loss(loss, opt) as scaled_loss:
-                    scaled_loss.backward()
-            else:
-                loss.backward()
+            assert opt is None  # does not use apex
+            loss.backward()
             grad = delta.grad.detach()
             d = delta[index[0], :, :, :]
             g = grad[index[0], :, :, :]
