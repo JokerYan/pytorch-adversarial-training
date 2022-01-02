@@ -125,6 +125,7 @@ The arguement description and accepted values are listed here:
   - adv: fast adversarial training used in Fast FGSM
   - dir_adv: fixed adversarial training proposed in paper
   - normal: normal training instead of adversarial training
+  - pgd: only implemented for Madry MNIST model. use PGD as adversarial training for post training
 * adv-dir: direction of fixed adversarial training
   - na: not applicable, used for adv and normal pt-method
   - pos: positive direction, data + fix perturbation
