@@ -1,4 +1,4 @@
-# Adaptive Modeling Against Adversarial Attacks (Fast FGSM Experiment)
+# Adaptive Modeling Against Adversarial Attacks (Madry Model Experiment)
 
 This is the official experiment repo on Fast-FGSM base models for the [paper](https://arxiv.org/abs/2112.12431) "Adaptive Modeling Against Adversarial Attacks".
 
