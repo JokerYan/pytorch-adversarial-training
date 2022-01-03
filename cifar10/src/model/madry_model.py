@@ -160,12 +160,26 @@ class WideResNet(nn.Module):
         out = self.block2(out)
         out = self.block3(out)
         out = self.relu(self.bn1(out))
+        self.feature_conv = out.detach().cpu().numpy()
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
 
         self.train()
 
         return self.fc(out)
+
+    def generate_cam(self, class_idx):
+        # generate the class activation maps upsample to 256x256
+        weight_softmax = list(self.parameters())[-2].data.cpu().numpy()
+        size_upsample = (32, 32)
+        bz, nc, h, w = self.feature_conv.shape
+        cam = weight_softmax[class_idx].dot(self.feature_conv.reshape((nc, h * w)))
+        cam = cam.reshape(h, w)
+        cam = cam - np.min(cam)
+        cam_img = cam / np.max(cam)
+        cam_img = np.uint8(255 * cam_img)
+        output_cam = cv2.resize(cam_img, size_upsample)
+        return output_cam
 
 
 if __name__ == '__main__':
