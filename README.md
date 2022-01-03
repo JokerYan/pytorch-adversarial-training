@@ -1,6 +1,6 @@
 # Adaptive Modeling Against Adversarial Attacks (Madry Model Experiment)
 
-This is the official experiment repo on Fast-FGSM base models for the [paper](https://arxiv.org/abs/2112.12431) "Adaptive Modeling Against Adversarial Attacks".
+This is the official experiment repo on Madry base models for the [paper](https://arxiv.org/abs/2112.12431) "Adaptive Modeling Against Adversarial Attacks".
 
 The main code repo: https://github.com/JokerYan/post_training
 The Fast-FGSM Model experiment repo: https://github.com/JokerYan/fast_adversarial
@@ -9,7 +9,7 @@ The original Madry base model repo: https://github.com/ylsung/pytorch-adversaria
 * Please note that the algorithm might be referred as **post training** for easy reference.
 
 ## Envrionment Setups
-We recommend using Anaconda/Miniconda to setup the envrionment, with the following command:
+We recommend using Anaconda/Miniconda to setup the environment, with the following command:
 ```bash
 conda env create -f pt_env.yml
 conda activate post_train
