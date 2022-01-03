@@ -8,7 +8,7 @@ import torchvision as tv
 
 from time import time
 
-from visualize import visualize_grad
+from visualize import visualize_grad, visualize_cam
 from src.model.madry_model import WideResNet
 from src.attack import FastGradientSignUntargeted
 from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate, save_model
@@ -173,6 +173,10 @@ class Trainer():
                     adv_pred = torch.max(adv_output, dim=1)[1]
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_adv_acc += adv_acc
+                    # visualize CAM
+                    # output_class = int(torch.argmax(output))
+                    cam = model.generate_cam(int(label))
+                    visualize_cam(data, cam, i)
                     self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
 
                     # evaluate post model against adv
@@ -187,9 +191,9 @@ class Trainer():
                     total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
                     self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
 
-                    # visualize grad
-                    visualize_grad(model, data, label, i)
-                    visualize_grad(post_model, data, label, str(i) + "_post")
+                    # # visualize grad
+                    # visualize_grad(model, data, label, i)
+                    # visualize_grad(post_model, data, label, str(i) + "_post")
 
                     # evaluate base model against natural
                     output = model(data, _eval=True)

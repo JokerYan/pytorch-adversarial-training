@@ -102,10 +102,10 @@ def visualize_cam(x, cam, index):
     x = np.squeeze(x.cpu().numpy())
     x = 255 * x
     x = np.transpose(x, [1, 2, 0])
-    cv2.imwrite('./debug/input_{}.jpg'.format(index), x)
+    cv2.imwrite('./debug/input_{}_madry.jpg'.format(index), x)
     fig, ax = plt.subplots()
     cam = ax.imshow(cam)
-    plt.savefig('./debug/cam_{}.jpg'.format(index))
+    plt.savefig('./debug/cam_{}_madry.jpg'.format(index))
 
 
 def visualize_grad(model, x, y, index):
