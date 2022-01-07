@@ -104,7 +104,7 @@ def visualize_cam(x, cam, index):
     x = np.transpose(x, [1, 2, 0])
     cv2.imwrite('./debug/input_{}_madry.jpg'.format(index), x)
     fig, ax = plt.subplots()
-    cam = ax.imshow(cam)
+    _ = ax.imshow(cam)
     plt.savefig('./debug/cam_{}_madry.jpg'.format(index))
 
 
@@ -120,10 +120,19 @@ def visualize_grad(model, x, y, index):
         grad_sample = grad[0][0]
         grad_sample[grad_sample < 0] = 0
         fig, ax = plt.subplots()
-        cam = ax.imshow(grad_sample, vmin=0)
+        _ = ax.imshow(grad_sample, vmin=0)
         plt.savefig('./debug/grad_{}_madry.jpg'.format(index))
         plt.close()
 
         # x = np.squeeze(x.detach().cpu().numpy())
         # x = 255 * np.transpose(x, [1, 2, 0])
         # cv2.imwrite('./debug/input_{}_madry.jpg'.format(index), x)
+
+def visualize_delta(delta, index):
+    delta = delta.detach().cpu().numpy()
+    delta_sample = delta[0][0]
+    delta_sample[delta_sample < 0] = 0
+    fig, ax = plt.subplots()
+    _ = ax.imshow(delta_sample)
+    plt.savefig('./debug/delta_{}_madry.jpg'.format(index))
+    plt.close()

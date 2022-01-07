@@ -182,6 +182,7 @@ class Trainer():
                     # # visualize grad
                     visualize_grad(model, data, label, i)
                     # visualize_grad(post_model, data, label, str(i) + "_post")
+                    visualize_delta(adv_data - data, i)
                     continue
 
                     # evaluate post model against adv
