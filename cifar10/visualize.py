@@ -120,7 +120,7 @@ def visualize_grad(model, x, y, index):
         grad_sample = grad[0][0]
         grad_sample[grad_sample < 0] = 0
         fig, ax = plt.subplots()
-        cam = ax.imshow(grad_sample, vmin=-0.2, vmax=0.2)
+        cam = ax.imshow(grad_sample, vmin=0)
         plt.savefig('./debug/grad_{}_madry.jpg'.format(index))
         plt.close()
 
