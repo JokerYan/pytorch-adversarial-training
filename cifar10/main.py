@@ -175,9 +175,14 @@ class Trainer():
                     total_adv_acc += adv_acc
                     # visualize CAM
                     # output_class = int(torch.argmax(output))
-                    cam = model.generate_cam(int(label))
-                    visualize_cam(data, cam, i)
+                    # cam = model.generate_cam(int(label))
+                    # visualize_cam(data, cam, i)
                     self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
+
+                    # # visualize grad
+                    visualize_grad(model, data, label, i)
+                    # visualize_grad(post_model, data, label, str(i) + "_post")
+                    continue
 
                     # evaluate post model against adv
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
@@ -191,9 +196,6 @@ class Trainer():
                     total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
                     self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
 
-                    # # visualize grad
-                    # visualize_grad(model, data, label, i)
-                    # visualize_grad(post_model, data, label, str(i) + "_post")
 
                     # evaluate base model against natural
                     output = model(data, _eval=True)
