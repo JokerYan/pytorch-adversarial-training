@@ -15,6 +15,7 @@ from src.utils import makedirs, create_logger, tensor2cuda, numpy2cuda, evaluate
 
 from src.argument import parser, print_args
 from post_utils import get_train_loaders_by_class, post_train
+from blackbox_dataset import BlackboxDataset
 
 
 class Trainer():
@@ -164,9 +165,12 @@ class Trainer():
 
                 if adv_test:
                     with torch.enable_grad():
-                        # pseudo_label: use predicted label as target label
-                        adv_data = self.attack.perturb(data, pred if use_pseudo_label else label,
-                                                       'mean', False)
+                        if not args.blackbox:
+                            # pseudo_label: use predicted label as target label
+                            adv_data = self.attack.perturb(data, pred if use_pseudo_label else label,
+                                                           'mean', False)
+                        else:
+                            adv_data = data  # already attacked
 
                     # evaluate base model against adv
                     adv_output = model(adv_data, _eval=True)
@@ -180,9 +184,9 @@ class Trainer():
                     self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
 
                     # # visualize grad
-                    visualize_grad(model, data, label, i)
+                    # visualize_grad(model, data, label, i)
                     # visualize_grad(post_model, data, label, str(i) + "_post")
-                    visualize_delta(adv_data - data, i)
+                    # visualize_delta(adv_data - data, i)
                     continue
 
                     # evaluate post model against adv
@@ -287,10 +291,13 @@ def main(args):
 
         tr_loader = DataLoader(tr_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
-        te_dataset = tv.datasets.CIFAR10(args.data_root,
-                                         train=False,
-                                         transform=tv.transforms.ToTensor(),
-                                         download=True)
+        if not args.blackbox:
+            te_dataset = tv.datasets.CIFAR10(args.data_root,
+                                             train=False,
+                                             transform=tv.transforms.ToTensor(),
+                                             download=True)
+        else:
+            te_dataset = BlackboxDataset("../../data/cifar10_adv_fast.pickle")
 
         te_loader = DataLoader(te_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 
