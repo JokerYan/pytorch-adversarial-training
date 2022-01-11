@@ -93,6 +93,10 @@ class FastGradientSignUntargeted():
             for _iter in range(self.max_iters):
                 outputs = self.model(x, _eval=True)
 
+                # early stop
+                if torch.argmax(outputs) == labels:
+                    break
+
                 loss = F.cross_entropy(outputs, labels, reduction=reduction4loss)
 
                 if reduction4loss == 'none':
