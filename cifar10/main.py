@@ -187,7 +187,7 @@ class Trainer():
                     # # visualize grad
                     # visualize_grad(model, data, label, i)
                     # visualize_grad(post_model, data, label, str(i) + "_post")
-                    # visualize_delta(adv_data - data, i)
+                    visualize_delta(adv_data - data, i)
 
                     if args.blackbox:  #
                         if (torch.argmax(adv_output) != label).sum().item():  # attack successful
