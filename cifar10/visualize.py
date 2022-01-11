@@ -129,10 +129,11 @@ def visualize_grad(model, x, y, index):
         # cv2.imwrite('./debug/input_{}_madry.jpg'.format(index), x)
 
 def visualize_delta(delta, index):
+    epsilon = 8/255
     delta = delta.detach().cpu().numpy()
     delta_sample = delta[0][0]
     delta_sample[delta_sample < 0] = 0
     fig, ax = plt.subplots()
-    _ = ax.imshow(delta_sample)
+    _ = ax.imshow(delta_sample, vmin=0, vmax=epsilon)
     plt.savefig('./debug/delta_{}_madry.jpg'.format(index))
     plt.close()
