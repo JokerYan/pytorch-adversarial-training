@@ -190,7 +190,7 @@ class Trainer():
                     # visualize_delta(adv_data - data, i)
 
                     if args.blackbox:  #
-                        if (torch.argmax(output) != y).sum().item():  # attack successful
+                        if (torch.argmax(adv_output) != y).sum().item():  # attack successful
                             pgd_blackbox_success_list.append(str(i))
                         if i % 1000 == 0:
                             with open('./logs/log_exp_blackbox_index.txt', 'w+') as f:
