@@ -147,6 +147,7 @@ class Trainer():
         total_neighbour_acc = 0.0
         total_natural_acc = 0.0
         total_natural_post_acc = 0.0
+        pgd_blackbox_success_list = []
 
         train_loaders_by_class = get_train_loaders_by_class(args.data_root, 128)
 
@@ -187,6 +188,14 @@ class Trainer():
                     # visualize_grad(model, data, label, i)
                     # visualize_grad(post_model, data, label, str(i) + "_post")
                     # visualize_delta(adv_data - data, i)
+
+                    if args.blackbox:  #
+                        if (torch.argmax(output) != y).sum().item():  # attack successful
+                            pgd_blackbox_success_list.append(str(i))
+                        if i % 1000 == 0:
+                            with open('./logs/log_exp_blackbox_index.txt', 'w+') as f:
+                                f.write('\n'.join(pgd_blackbox_success_list))
+
                     continue
 
                     # evaluate post model against adv
