@@ -156,12 +156,6 @@ class Trainer():
                 self.logger.info('')
                 data, label = tensor2cuda(data), tensor2cuda(label)
 
-                # output = model(data, _eval=True)
-                #
-                # pred = torch.max(output, dim=1)[1]
-                # te_acc = evaluate(pred.cpu().numpy(), label.cpu().numpy(), 'sum')
-
-                # total_acc += te_acc
                 num += data.shape[0]
 
                 if adv_test:
@@ -178,16 +172,7 @@ class Trainer():
                     adv_pred = torch.max(adv_output, dim=1)[1]
                     adv_acc = evaluate(adv_pred.cpu().numpy(), label.cpu().numpy(), 'sum')
                     total_adv_acc += adv_acc
-                    # visualize CAM
-                    # output_class = int(torch.argmax(output))
-                    # cam = model.generate_cam(int(label))
-                    # visualize_cam(data, cam, i)
                     self.logger.info('Batch: {}\tbase adv acc: {:.4f}'.format(num, total_adv_acc / num))
-
-                    # # visualize grad
-                    # visualize_grad(model, data, label, i)
-                    # visualize_grad(post_model, data, label, str(i) + "_post")
-                    visualize_delta(adv_data - data, i)
 
                     if args.blackbox:  #
                         if (torch.argmax(adv_output) != label).sum().item():  # attack successful
@@ -195,8 +180,6 @@ class Trainer():
                         if i % 1000 == 0:
                             with open('./logs/log_exp_blackbox_index.txt', 'w+') as f:
                                 f.write('\n'.join(pgd_blackbox_success_list))
-
-                    continue
 
                     # evaluate post model against adv
                     post_model, original_class, neighbour_class, loss_list, acc_list, neighbour_delta = \
@@ -209,7 +192,6 @@ class Trainer():
 
                     total_neighbour_acc += 1 if int(label) == int(original_class) or int(label) == int(neighbour_class) else 0
                     self.logger.info('Batch: {}\tneighbour acc: {:.4f}'.format(num, total_neighbour_acc / num))
-
 
                     # evaluate base model against natural
                     output = model(data, _eval=True)
